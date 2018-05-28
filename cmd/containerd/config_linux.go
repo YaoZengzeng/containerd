@@ -10,6 +10,7 @@ func defaultConfig() *server.Config {
 		Root:  defaults.DefaultRootDir,
 		State: defaults.DefaultStateDir,
 		GRPC: server.GRPCConfig{
+			// 默认的grpc地址为"/run/containerd/containerd.sock"
 			Address: defaults.DefaultAddress,
 		},
 		Debug: server.Debug{

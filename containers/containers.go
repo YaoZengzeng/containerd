@@ -9,8 +9,10 @@ import (
 
 // Container represents the set of data pinned by a container. Unless otherwise
 // noted, the resources here are considered in use by the container.
+// Container代表一系列和container绑定的数据，除非特殊说明，这里的资源都被认为容器正在使用
 //
 // The resources specified in this object are used to create tasks from the container.
+// 本对象中声明的资源用于从container中创建task
 type Container struct {
 	// ID uniquely identifies the container in a nameapace.
 	//

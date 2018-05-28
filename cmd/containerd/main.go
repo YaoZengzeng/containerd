@@ -78,12 +78,15 @@ func main() {
 			signals = make(chan os.Signal, 2048)
 			serverC = make(chan *server.Server, 1)
 			ctx     = log.WithModule(gocontext.Background(), "containerd")
+			// 加载默认的containerd配置
 			config  = defaultConfig()
 		)
 
 		done := handleSignals(ctx, signals, serverC)
 		// start the signal handler as soon as we can to make sure that
 		// we don't miss any signals during boot
+		// 尽可能早地启动signal handler，从而确保我们在启动期间不会遗漏任何signal
+		// 处理的信号类型为unix.SIGTERM,unix.SIGINT,unix.SIGUSR1,unix.SIGPIPE
 		signal.Notify(signals, handledSignals...)
 
 		if err := server.LoadConfig(context.GlobalString("config"), config); err != nil && !os.IsNotExist(err) {
@@ -102,6 +105,7 @@ func main() {
 			"revision": version.Revision,
 		}).Info("starting containerd")
 
+		// 创建新的server
 		server, err := server.New(ctx, config)
 		if err != nil {
 			return err

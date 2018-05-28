@@ -49,15 +49,19 @@ const (
 
 func init() {
 	plugin.Register(&plugin.Registration{
+		// 加载RuntimePlugin
 		Type:   plugin.RuntimePlugin,
 		ID:     "linux",
 		InitFn: New,
 		Requires: []plugin.Type{
+			// 提前加载TaskMonitorPlugin以及MetadataPlugin
 			plugin.TaskMonitorPlugin,
 			plugin.MetadataPlugin,
 		},
 		Config: &Config{
+			// 默认的shim为"containerd-shim"
 			Shim:    defaultShim,
+			// 默认的runtime为"runc"
 			Runtime: defaultRuntime,
 		},
 	})
@@ -68,8 +72,10 @@ var _ = (runtime.Runtime)(&Runtime{})
 // Config options for the runtime
 type Config struct {
 	// Shim is a path or name of binary implementing the Shim GRPC API
+	// Shim是一个路径或者实现了Shim GRPC API的二进制接口
 	Shim string `toml:"shim"`
 	// Runtime is a path or name of an OCI runtime used by the shim
+	// Runtime是shim使用的OCI runtime的路径或者名字
 	Runtime string `toml:"runtime"`
 	// RuntimeRoot is the path that shall be used by the OCI runtime for its data
 	RuntimeRoot string `toml:"runtime_root"`
@@ -80,6 +86,7 @@ type Config struct {
 }
 
 // New returns a configured runtime
+// New返回一个配置好的runtime
 func New(ic *plugin.InitContext) (interface{}, error) {
 	ic.Meta.Platforms = []ocispec.Platform{platforms.DefaultSpec()}
 
@@ -115,6 +122,7 @@ func New(ic *plugin.InitContext) (interface{}, error) {
 
 	// TODO: need to add the tasks to the monitor
 	for _, t := range tasks {
+		// AddWithNamespace将task加入指定的namespace
 		if err := r.tasks.AddWithNamespace(t.namespace, t); err != nil {
 			return nil, err
 		}
@@ -342,12 +350,15 @@ func (r *Runtime) restoreTasks(ctx context.Context) ([]*Task, error) {
 		return nil, err
 	}
 	var o []*Task
+	// 遍历state目录
 	for _, namespace := range dir {
+		// 获取namespace目录
 		if !namespace.IsDir() {
 			continue
 		}
 		name := namespace.Name()
 		log.G(ctx).WithField("namespace", name).Debug("loading tasks in namespace")
+		// 加载各个namespace下的task
 		tasks, err := r.loadTasks(ctx, name)
 		if err != nil {
 			return nil, err

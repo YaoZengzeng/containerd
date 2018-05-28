@@ -12,6 +12,7 @@ import (
 )
 
 // InitContext is used for plugin inititalization
+// InitContext用于插件的初始化
 type InitContext struct {
 	Context context.Context
 	Root    string

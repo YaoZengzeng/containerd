@@ -11,9 +11,11 @@ type Labels map[string]string
 
 // NewNamespace returns a namespaces that is responsible for managing a collection of
 // metrics for a particual namespace and subsystem
+// NewNamespace返回一个namespace，它负责管理特定namespace和子系统的数据收集
 //
 // labels allows const labels to be added to all metrics created in this namespace
 // and are commonly used for data like application version and git commit
+// labels允许常量label被添加到所有该namespace产生的metrics中
 func NewNamespace(name, subsystem string, labels Labels) *Namespace {
 	if labels == nil {
 		labels = make(map[string]string)

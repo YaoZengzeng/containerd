@@ -41,9 +41,11 @@ var (
 
 func init() {
 	plugin.Register(&plugin.Registration{
+		// 注册一个GRPCPlugin，用于提供task服务
 		Type: plugin.GRPCPlugin,
 		ID:   "tasks",
 		Requires: []plugin.Type{
+			// 要求提前注册RuntimePlugin以及MetadataPlugin
 			plugin.RuntimePlugin,
 			plugin.MetadataPlugin,
 		},
@@ -52,6 +54,7 @@ func init() {
 }
 
 func initFunc(ic *plugin.InitContext) (interface{}, error) {
+	// 确保RuntimePlugin以及MetadataPluing已经注册
 	rt, err := ic.GetByType(plugin.RuntimePlugin)
 	if err != nil {
 		return nil, err
@@ -63,6 +66,7 @@ func initFunc(ic *plugin.InitContext) (interface{}, error) {
 	}
 	cs := m.(*metadata.DB).ContentStore()
 	runtimes := make(map[string]runtime.Runtime)
+	// 加载各种runtime实例
 	for _, rr := range rt {
 		ri, err := rr.Instance()
 		if err != nil {

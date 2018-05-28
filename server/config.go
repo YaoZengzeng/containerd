@@ -10,6 +10,7 @@ import (
 )
 
 // Config provides containerd configuration data for the server
+// Config为server提供containerd的配置信息
 type Config struct {
 	// Root is the path to a directory where containerd will store persistent data
 	Root string `toml:"root"`
@@ -22,10 +23,12 @@ type Config struct {
 	// Metrics and monitoring settings
 	Metrics MetricsConfig `toml:"metrics"`
 	// Plugins provides plugin specific configuration for the initialization of a plugin
+	// Plugins提供插件相关的配置，用来初始化plugin
 	Plugins map[string]toml.Primitive `toml:"plugins"`
 	// OOMScore adjust the containerd's oom score
 	OOMScore int `toml:"oom_score"`
 	// Cgroup specifies cgroup information for the containerd daemon process
+	// Cgroup指定了containerd的daemon进程的cgroup信息
 	Cgroup CgroupConfig `toml:"cgroup"`
 
 	md toml.MetaData

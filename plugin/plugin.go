@@ -59,19 +59,23 @@ const (
 )
 
 // Registration contains information for registering a plugin
+// Registration包含了注册一个plugin所需的信息
 type Registration struct {
 	// Type of the plugin
 	Type Type
 	// ID of the plugin
 	ID string
 	// Config specific to the plugin
+	// 插件特殊的一些配置
 	Config interface{}
 	// Requires is a list of plugins that the registered plugin requires to be available
+	// 注册本插件依赖的一系列插件
 	Requires []Type
 
 	// InitFn is called when initializing a plugin. The registration and
 	// context are passed in. The init function may modify the registration to
 	// add exports, capabilites and platform support declarations.
+	// InitFn会在初始化一个插件的时候被调用
 	InitFn func(*InitContext) (interface{}, error)
 }
 
@@ -103,6 +107,7 @@ var register = struct {
 }{}
 
 // Load loads all plugins at the provided path into containerd
+// Load将给定路径的所有plugins加载到containerd中
 func Load(path string) (err error) {
 	defer func() {
 		if v := recover(); v != nil {
@@ -117,6 +122,7 @@ func Load(path string) (err error) {
 }
 
 // Register allows plugins to register
+// 将r加载至全局变量register
 func Register(r *Registration) {
 	register.Lock()
 	defer register.Unlock()

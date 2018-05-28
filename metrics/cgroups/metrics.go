@@ -26,6 +26,8 @@ type Trigger func(string, string, cgroups.Cgroup)
 
 // newCollector registers the collector with the provided namespace and returns it so
 // that cgroups can be added for collection
+// newCollector用给定的namespace注册collector并且返回
+// 这样cgroups就可以被添加用于collection
 func newCollector(ns *metrics.Namespace) *collector {
 	if ns == nil {
 		return &collector{}
@@ -57,6 +59,7 @@ func taskID(id, namespace string) string {
 
 // collector provides the ability to collect container stats and export
 // them in the prometheus format
+// collector提供了收集container stats的能力并且将它们以prometheus格式暴露出去
 type collector struct {
 	mu sync.RWMutex
 

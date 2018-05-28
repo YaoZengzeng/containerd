@@ -24,6 +24,7 @@ type Config struct {
 
 func init() {
 	plugin.Register(&plugin.Registration{
+		// 注册TaskMonitorPlugin
 		Type:   plugin.TaskMonitorPlugin,
 		ID:     "cgroups",
 		InitFn: New,
@@ -32,10 +33,12 @@ func init() {
 }
 
 // New returns a new cgroups monitor
+// New返回一个新的cgroups monitor
 func New(ic *plugin.InitContext) (interface{}, error) {
 	var ns *metrics.Namespace
 	config := ic.Config.(*Config)
 	if !config.NoPrometheus {
+		// 如果是prometheus格式
 		ns = metrics.NewNamespace("container", "", nil)
 	}
 	collector := newCollector(ns)

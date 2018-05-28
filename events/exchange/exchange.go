@@ -19,6 +19,7 @@ import (
 )
 
 // Exchange broadcasts events
+// Exchange用来广播events
 type Exchange struct {
 	broadcaster *goevents.Broadcaster
 }

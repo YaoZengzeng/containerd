@@ -18,12 +18,15 @@ import (
 
 func init() {
 	plugin.Register(&plugin.Registration{
+		// 注册一个GRPCPlugin，用于提供containers服务
 		Type: plugin.GRPCPlugin,
 		ID:   "containers",
 		Requires: []plugin.Type{
+			// 依赖的插件为MetadataPlugin
 			plugin.MetadataPlugin,
 		},
 		InitFn: func(ic *plugin.InitContext) (interface{}, error) {
+			// 从InitContext中获取MetadataPlugin是否存储
 			m, err := ic.Get(plugin.MetadataPlugin)
 			if err != nil {
 				return nil, err
@@ -39,6 +42,7 @@ type service struct {
 }
 
 // NewService returns the container GRPC server
+// NewService返回一个container GRPC server
 func NewService(db *metadata.DB, publisher events.Publisher) api.ContainersServer {
 	return &service{db: db, publisher: publisher}
 }

@@ -26,6 +26,7 @@ func loadPlugins(path string) error {
 	if err != nil {
 		return err
 	}
+	// 加载一系列动态链接文件（.so文件）
 	for _, lib := range libs {
 		if _, err := plugin.Open(lib); err != nil {
 			return err

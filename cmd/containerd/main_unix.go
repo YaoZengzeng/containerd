@@ -29,6 +29,7 @@ func handleSignals(ctx context.Context, signals chan os.Signal, serverC chan *se
 		for {
 			select {
 			case s := <-serverC:
+				// 从serverC中获取server结构
 				server = s
 			case s := <-signals:
 				log.G(ctx).WithField("signal", s).Debug("received signal")
@@ -39,10 +40,13 @@ func handleSignals(ctx context.Context, signals chan os.Signal, serverC chan *se
 					continue
 				default:
 					if server == nil {
+						// 如果containerd server未启动成功，则只把done关掉
 						close(done)
 						return
 					}
+					// 先停止containerd sever
 					server.Stop()
+					// 关闭done
 					close(done)
 				}
 			}

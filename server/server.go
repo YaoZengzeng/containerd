@@ -38,6 +38,7 @@ import (
 )
 
 // New creates and initializes a new containerd server
+// New创建并且初始化一个新的containerd server
 func New(ctx context.Context, config *Config) (*Server, error) {
 	switch {
 	case config.Root == "":
@@ -54,6 +55,7 @@ func New(ctx context.Context, config *Config) (*Server, error) {
 	if err := os.MkdirAll(config.State, 0711); err != nil {
 		return nil, err
 	}
+	// 设置OOMScore以及CgroupPath
 	if err := apply(ctx, config); err != nil {
 		return nil, err
 	}
@@ -61,6 +63,7 @@ func New(ctx context.Context, config *Config) (*Server, error) {
 	if err != nil {
 		return nil, err
 	}
+	// 创建grpc server
 	rpc := grpc.NewServer(
 		grpc.UnaryInterceptor(interceptor),
 		grpc.StreamInterceptor(grpc_prometheus.StreamServerInterceptor),
@@ -75,6 +78,7 @@ func New(ctx context.Context, config *Config) (*Server, error) {
 	)
 	for _, p := range plugins {
 		id := p.URI()
+		// 开始加载插件...
 		log.G(ctx).WithField("type", p.Type).Infof("loading plugin %q...", id)
 
 		initContext := plugin.NewContext(
@@ -95,6 +99,7 @@ func New(ctx context.Context, config *Config) (*Server, error) {
 			}
 			initContext.Config = pluginConfig
 		}
+		// 调用Init函数初始化插件
 		result := p.Init(initContext)
 		if err := initialized.Add(result); err != nil {
 			return nil, errors.Wrapf(err, "could not add plugin result to plugin set")
@@ -115,6 +120,7 @@ func New(ctx context.Context, config *Config) (*Server, error) {
 		}
 	}
 	// register services after all plugins have been initialized
+	// 在所有的plugins初始化完成之后，注册services
 	for _, service := range services {
 		if err := service.Register(rpc); err != nil {
 			return nil, err
@@ -166,11 +172,15 @@ func (s *Server) Stop() {
 
 func loadPlugins(config *Config) ([]*plugin.Registration, error) {
 	// load all plugins into containerd
+	// 将所有的插件加载到containerd
 	if err := plugin.Load(filepath.Join(config.Root, "plugins")); err != nil {
 		return nil, err
 	}
 	// load additional plugins that don't automatically register themselves
+	// 加载那些不会自动注册自己的额外的插件
+	// 包括ContentPlugin以及MetadataPlugin
 	plugin.Register(&plugin.Registration{
+		// ContentPlugin实现了content的存储
 		Type: plugin.ContentPlugin,
 		ID:   "content",
 		InitFn: func(ic *plugin.InitContext) (interface{}, error) {
@@ -179,6 +189,7 @@ func loadPlugins(config *Config) ([]*plugin.Registration, error) {
 		},
 	})
 	plugin.Register(&plugin.Registration{
+		// MetadataPlugin实现了meta的存储
 		Type: plugin.MetadataPlugin,
 		ID:   "bolt",
 		Requires: []plugin.Type{
