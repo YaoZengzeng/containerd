@@ -25,6 +25,7 @@ func loadBundle(id, path, workdir string) *bundle {
 }
 
 // newBundle creates a new bundle on disk at the provided path for the given id
+// newBundle在磁盘给定的路径上为给定id创建一个新的bundle
 func newBundle(id, path, workDir string, spec []byte) (b *bundle, err error) {
 	if err := os.MkdirAll(path, 0711); err != nil {
 		return nil, err
@@ -48,9 +49,11 @@ func newBundle(id, path, workDir string, spec []byte) (b *bundle, err error) {
 	if err := os.Mkdir(path, 0711); err != nil {
 		return nil, err
 	}
+	// 创建rootfs
 	if err := os.Mkdir(filepath.Join(path, "rootfs"), 0711); err != nil {
 		return nil, err
 	}
+	// 写入config.json文件
 	err = ioutil.WriteFile(filepath.Join(path, configFilename), spec, 0666)
 	return &bundle{
 		id:      id,
@@ -66,6 +69,7 @@ type bundle struct {
 }
 
 // ShimOpt specifies shim options for initialization and connection
+// ShimOpt指定了用于初始化和连接的shim options
 type ShimOpt func(*bundle, string, *runctypes.RuncOptions) (shim.Config, client.Opt)
 
 // ShimRemote is a ShimOpt for connecting and starting a remote shim
@@ -78,6 +82,7 @@ func ShimRemote(c *Config, daemonAddress, cgroup string, exitHandler func()) Shi
 }
 
 // ShimLocal is a ShimOpt for using an in process shim implementation
+// ShimLocal是一个ShimOpt用于一个in process的shim实现
 func ShimLocal(c *Config, exchange *exchange.Exchange) ShimOpt {
 	return func(b *bundle, ns string, ropts *runctypes.RuncOptions) (shim.Config, client.Opt) {
 		return b.shimConfig(ns, c, ropts), client.WithLocal(exchange)
@@ -92,8 +97,10 @@ func ShimConnect(c *Config, onClose func()) ShimOpt {
 }
 
 // NewShimClient connects to the shim managing the bundle and tasks creating it if needed
+// NewShimClient和shim相连，用于管理bundle以及tasks，创建之，如果需要的话
 func (b *bundle) NewShimClient(ctx context.Context, namespace string, getClientOpts ShimOpt, runcOpts *runctypes.RuncOptions) (*client.Client, error) {
 	cfg, opt := getClientOpts(b, namespace, runcOpts)
+	// 创建一个新的shim client
 	return client.New(ctx, cfg, opt)
 }
 

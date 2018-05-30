@@ -85,8 +85,10 @@ func (s *service) Create(ctx context.Context, req *api.CreateContainerRequest) (
 	var resp api.CreateContainerResponse
 
 	if err := s.withStoreUpdate(ctx, func(ctx context.Context, store containers.Store) error {
+		// 从req中解析出请求信息
 		container := containerFromProto(&req.Container)
 
+		// 存储container对象
 		created, err := store.Create(ctx, container)
 		if err != nil {
 			return err
@@ -98,6 +100,7 @@ func (s *service) Create(ctx context.Context, req *api.CreateContainerRequest) (
 	}); err != nil {
 		return &resp, errdefs.ToGRPC(err)
 	}
+	// 广播container create事件
 	if err := s.publisher.Publish(ctx, "/containers/create", &eventstypes.ContainerCreate{
 		ID:    resp.Container.ID,
 		Image: resp.Container.Image,

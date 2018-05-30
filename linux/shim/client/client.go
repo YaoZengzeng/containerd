@@ -33,6 +33,7 @@ var empty = &ptypes.Empty{}
 type Opt func(context.Context, shim.Config) (shimapi.ShimService, io.Closer, error)
 
 // WithStart executes a new shim process
+// WithStart执行一个新的shim process
 func WithStart(binary, address, daemonAddress, cgroup string, debug bool, exitHandler func()) Opt {
 	return func(ctx context.Context, config shim.Config) (_ shimapi.ShimService, _ io.Closer, err error) {
 		socket, err := newSocket(address)
@@ -46,6 +47,7 @@ func WithStart(binary, address, daemonAddress, cgroup string, debug bool, exitHa
 		}
 		defer f.Close()
 
+		// 创建并启动containerd-shim
 		cmd := newCommand(binary, daemonAddress, debug, config, f)
 		if err := cmd.Start(); err != nil {
 			return nil, nil, errors.Wrapf(err, "failed to start shim")
@@ -56,6 +58,7 @@ func WithStart(binary, address, daemonAddress, cgroup string, debug bool, exitHa
 			}
 		}()
 		go func() {
+			// 等待containerd-shim运行结束，并且执行exitHandler()
 			cmd.Wait()
 			exitHandler()
 		}()
@@ -77,6 +80,7 @@ func WithStart(binary, address, daemonAddress, cgroup string, debug bool, exitHa
 		if err = sys.SetOOMScore(cmd.Process.Pid, sys.OOMScoreMaxKillable); err != nil {
 			return nil, nil, errors.Wrap(err, "failed to set OOM Score on shim")
 		}
+		// 连接到一个已近存在的shim
 		c, clo, err := WithConnect(address, func() {})(ctx, config)
 		if err != nil {
 			return nil, nil, errors.Wrap(err, "failed to connect")

@@ -48,6 +48,8 @@ type Runtime interface {
 	Get(context.Context, string) (Task, error)
 	// Tasks returns all the current tasks for the runtime.
 	// Any container runs at most one task at a time.
+	// Tasks返回运行时当前所有的tasks
+	// 任何的容器在给定时刻最多只能运行一个task
 	Tasks(context.Context) ([]Task, error)
 	// Delete removes the task in the runtime.
 	Delete(context.Context, Task) (*Exit, error)

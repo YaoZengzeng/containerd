@@ -80,6 +80,7 @@ type Config struct {
 	// RuntimeRoot is the path that shall be used by the OCI runtime for its data
 	RuntimeRoot string `toml:"runtime_root"`
 	// NoShim calls runc directly from within the pkg
+	// NoShim为true，则直接从pkg里调用runc
 	NoShim bool `toml:"no_shim"`
 	// Debug enable debug on the shim
 	ShimDebug bool `toml:"shim_debug"`
@@ -150,7 +151,9 @@ func (r *Runtime) ID() string {
 }
 
 // Create a new task
+// 创建一个新的task
 func (r *Runtime) Create(ctx context.Context, id string, opts runtime.CreateOpts) (_ runtime.Task, err error) {
+	// 从ctx中获取namespace
 	namespace, err := namespaces.NamespaceRequired(ctx)
 	if err != nil {
 		return nil, err
@@ -160,11 +163,13 @@ func (r *Runtime) Create(ctx context.Context, id string, opts runtime.CreateOpts
 		return nil, errors.Wrapf(err, "invalid task id")
 	}
 
+	// 获取容器的运行时配置选项
 	ropts, err := r.getRuncOptions(ctx, id)
 	if err != nil {
 		return nil, err
 	}
 
+	// 新建bundle
 	bundle, err := newBundle(id,
 		filepath.Join(r.state, namespace),
 		filepath.Join(r.root, namespace),
@@ -188,6 +193,7 @@ func (r *Runtime) Create(ctx context.Context, id string, opts runtime.CreateOpts
 			}
 			cgroup = v.(*runctypes.CreateOptions).ShimCgroup
 		}
+		// 当shim退出时的退出处理函数
 		exitHandler := func() {
 			log.G(ctx).WithField("id", id).Info("shim reaped")
 			t, err := r.tasks.Get(ctx, id)
@@ -198,6 +204,7 @@ func (r *Runtime) Create(ctx context.Context, id string, opts runtime.CreateOpts
 			lc := t.(*Task)
 
 			// Stop the monitor
+			// 停止monitor
 			if err := r.monitor.Stop(lc); err != nil {
 				log.G(ctx).WithError(err).WithFields(logrus.Fields{
 					"id":        id,
@@ -257,16 +264,19 @@ func (r *Runtime) Create(ctx context.Context, id string, opts runtime.CreateOpts
 	if err != nil {
 		return nil, errdefs.FromGRPC(err)
 	}
+	// 创建task对象
 	t, err := newTask(id, namespace, int(cr.Pid), s, r.monitor, r.events,
 		proc.NewRunc(ropts.RuntimeRoot, sopts.Bundle, namespace, rt, ropts.CriuPath, ropts.SystemdCgroup))
 	if err != nil {
 		return nil, err
 	}
+	// 加入runtime的taskList中
 	if err := r.tasks.Add(ctx, t); err != nil {
 		return nil, err
 	}
 	// after the task is created, add it to the monitor if it has a cgroup
 	// this can be different on a checkpoint/restore
+	// 在task创建以后，将它加入monitor，如果它有一个cgroup的话
 	if t.cg != nil {
 		if err = r.monitor.Monitor(t); err != nil {
 			if _, err := r.Delete(ctx, t); err != nil {
@@ -275,6 +285,7 @@ func (r *Runtime) Create(ctx context.Context, id string, opts runtime.CreateOpts
 			return nil, err
 		}
 	}
+	// 广播task创建的事件
 	r.events.Publish(ctx, runtime.TaskCreateEventTopic, &eventstypes.TaskCreate{
 		ContainerID: sopts.ID,
 		Bundle:      sopts.Bundle,
@@ -456,6 +467,7 @@ func (r *Runtime) cleanupAfterDeadShim(ctx context.Context, bundle *bundle, ns, 
 		log.G(ctx).WithError(err).Error("delete bundle")
 	}
 
+	// 广播Task Delete事件
 	r.events.Publish(ctx, runtime.TaskDeleteEventTopic, &eventstypes.TaskDelete{
 		ContainerID: id,
 		Pid:         uint32(pid),

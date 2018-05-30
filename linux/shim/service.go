@@ -76,6 +76,7 @@ func NewService(config Config, publisher events.Publisher) (*Service, error) {
 }
 
 // Service is the shim implementation of a remote shim over GRPC
+// Service是一个通过GRPC的远程shim的实现
 type Service struct {
 	mu sync.Mutex
 
@@ -92,6 +93,7 @@ type Service struct {
 }
 
 // Create a new initial process and container with the underlying OCI runtime
+// Create用底层的OCI运行时创建一个新的initial进程和容器
 func (s *Service) Create(ctx context.Context, r *shimapi.CreateTaskRequest) (*shimapi.CreateTaskResponse, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -122,6 +124,7 @@ func (s *Service) Create(ctx context.Context, r *shimapi.CreateTaskRequest) (*sh
 		return nil, errdefs.ToGRPC(err)
 	}
 	// save the main task id and bundle to the shim for additional requests
+	// 保存main task id以及bundle到shim，用于additional requests
 	s.id = r.ID
 	s.bundle = r.Bundle
 	pid := process.Pid()

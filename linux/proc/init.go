@@ -62,6 +62,7 @@ type Init struct {
 }
 
 // NewRunc returns a new runc instance for a process
+// NewRunc返回一个进程的新的runc实例
 func NewRunc(root, path, namespace, runtime, criu string, systemd bool) *runc.Runc {
 	if root == "" {
 		root = RuncRoot

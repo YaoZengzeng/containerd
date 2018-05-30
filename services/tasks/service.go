@@ -146,26 +146,31 @@ func (s *service) Create(ctx context.Context, r *api.CreateTaskRequest) (*api.Cr
 			Options: m.Options,
 		})
 	}
+	// 获取容器运行时
 	runtime, err := s.getRuntime(container.Runtime.Name)
 	if err != nil {
 		return nil, err
 	}
+	// 调用容器运行时的Create函数
 	c, err := runtime.Create(ctx, r.ContainerID, opts)
 	if err != nil {
 		return nil, errdefs.ToGRPC(err)
 	}
+	// 获取State
 	state, err := c.State(ctx)
 	if err != nil {
 		log.G(ctx).Error(err)
 	}
 
 	return &api.CreateTaskResponse{
+		// 返回container id和pid
 		ContainerID: r.ContainerID,
 		Pid:         state.Pid,
 	}, nil
 }
 
 func (s *service) Start(ctx context.Context, r *api.StartRequest) (*api.StartResponse, error) {
+	// 获取task对象
 	t, err := s.getTask(ctx, r.ContainerID)
 	if err != nil {
 		return nil, err

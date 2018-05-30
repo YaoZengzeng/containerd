@@ -33,6 +33,7 @@ type Container struct {
 	// tasks.
 	//
 	// This property is required and immutable.
+	// Runtime指定了启动容器task时使用哪种容器运行时
 	Runtime RuntimeInfo
 
 	// Spec should carry the the runtime specification used to implement the
@@ -45,6 +46,9 @@ type Container struct {
 	// filesystem. When starting a task from this container, a caller should
 	// look up the mounts from the snapshot service and include those on the
 	// task create request.
+	// SnapshotKey指定了容器的rootfs使用的snapshot key
+	// 当从该容器启动一个task时，caller应该从snapshot service中寻找mounts并且将它们包含在
+	// task create request中
 	//
 	// This field is not required but immutable.
 	SnapshotKey string
@@ -52,6 +56,7 @@ type Container struct {
 	// Snapshotter specifies the snapshotter name used for rootfs
 	//
 	// This field is not required but immutable.
+	// Snapshotter指定了rootfs使用的snapshotter name
 	Snapshotter string
 
 	// CreatedAt is the time at which the container was created.
